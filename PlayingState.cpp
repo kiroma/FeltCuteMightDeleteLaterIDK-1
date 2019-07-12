@@ -9,23 +9,21 @@ class StateMachine;
 #include "LoseMenuState.h"
 
 PlayingState::PlayingState(StateMachine& machine, sf::RenderWindow& window, bool replace)  
-	: State{ machine, window, replace } {
-
-	//Text information
-	this->scoreText = new OStringText(SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0 + 30, 25, spaceInvadersFont, sf::Color(255, 255, 255));
-	this->verisonText = new Text(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 30, 25, arialFont, "Version 1.1", sf::Color(255, 255, 0));
-
+	: State{ machine, window, replace },
+	versionText(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 30, 25, arialFont, "Version 1.1", sf::Color(255, 255, 0)),
+	scoreText(SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0 + 30, 25, spaceInvadersFont, sf::Color(255, 255, 255))
+{
 	//Score and lives information
 	std::ifstream ifs("Information/SpaceInvaders.txt");
-	if (!ifs.is_open()) { return; }
-	ifs >> playerScore;
-
+	if (!ifs.is_open()) 
+	{
+		ifs >> playerScore;
+	}
 
 	//Player information
 	playerTexture.loadFromFile(playerT);
-	player = new Player(&playerTexture, sf::Vector2<unsigned>(1, 1), 0.3, 2.0f);
-	this->player->setPlayerPos(sf::Vector2<float>(SCREEN_WIDTH / 10, GROUND_HEIGHT));
-	playerVector.push_back(this->player);
+	players.emplace_back(&playerTexture, sf::Vector2<unsigned>(1, 1), 0.3, 2.0f);
+	players[0].setPlayerPos(sf::Vector2<float>(SCREEN_WIDTH / 10, GROUND_HEIGHT));
 	pBullet.setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN));
 
 
@@ -40,48 +38,84 @@ PlayingState::PlayingState(StateMachine& machine, sf::RenderWindow& window, bool
 
 	//Invader creation
 	for (int x = 0; x < invaderCount; x++) {
-		if (x <  (invaderCount / rowCount) * 1)										 { this->invaders[x] = new Invaders(&invaderTexture[0], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f); this->invaders[x]->setType("squid"); }
-		if (x >= (invaderCount / rowCount) * 1 && x < (invaderCount / rowCount) * 2) { this->invaders[x] = new Invaders(&invaderTexture[1], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f); this->invaders[x]->setType("crab"); }
-		if (x >= (invaderCount / rowCount) * 2 && x < (invaderCount / rowCount) * 3) { this->invaders[x] = new Invaders(&invaderTexture[1], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f); this->invaders[x]->setType("crab"); }
-		if (x >= (invaderCount / rowCount) * 3 && x < (invaderCount / rowCount) * 4) { this->invaders[x] = new Invaders(&invaderTexture[2], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f); this->invaders[x]->setType("octopus"); }
-		if (x >= (invaderCount / rowCount) * 4 && x < (invaderCount / rowCount) * 5) { this->invaders[x] = new Invaders(&invaderTexture[2], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f); this->invaders[x]->setType("octopus"); }
+		if (x <  (invaderCount / rowCount) * 1)
+		{
+			invaders.emplace_back(&invaderTexture[0], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f);
+			invaders[x].setType("squid");
+		}
+		if (x >= (invaderCount / rowCount) * 1 && x < (invaderCount / rowCount) * 2)
+		{
+			invaders.emplace_back(&invaderTexture[1], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f);
+			invaders[x].setType("crab");
+		}
+		if (x >= (invaderCount / rowCount) * 2 && x < (invaderCount / rowCount) * 3)
+		{
+			invaders.emplace_back(&invaderTexture[1], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f);
+			invaders[x].setType("crab");
+		}
+		if (x >= (invaderCount / rowCount) * 3 && x < (invaderCount / rowCount) * 4)
+		{
+			invaders.emplace_back(&invaderTexture[2], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f);
+			invaders[x].setType("octopus");
+		}
+		if (x >= (invaderCount / rowCount) * 4 && x < (invaderCount / rowCount) * 5) {
+			invaders.emplace_back(&invaderTexture[2], sf::Vector2<unsigned>(2, 1), invaderSwitchTimer, 0.0f);
+			invaders[x].setType("octopus");
+		}
 
-		this->invaderVector.push_back(this->invaders[x]); 
 	}
 
 	//Invader positioning
 	//Row 5
-	for (int x = (invaderCount / rowCount) * 0; x < (invaderCount / rowCount) * 1; x++) { this->invaders[x]->setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 150)); changedInvaderX += 80; }
+	for (int x = (invaderCount / rowCount) * 0; x < (invaderCount / rowCount) * 1; x++)
+	{
+		invaders[x].setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 150));
+		changedInvaderX += 80;
+	}
 	changedInvaderX = initialInvaderX;
 
 	//Row 4
-	for (int x = (invaderCount / rowCount) * 1; x < (invaderCount / rowCount) * 2; x++) { this->invaders[x]->setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 220)); changedInvaderX += 80; }
+	for (int x = (invaderCount / rowCount) * 1; x < (invaderCount / rowCount) * 2; x++)
+	{
+		invaders[x].setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 220));
+		changedInvaderX += 80;
+	}
 	changedInvaderX = initialInvaderX;
 
 	//Row 3
-	for (int x = (invaderCount / rowCount) * 2; x < (invaderCount / rowCount) * 3; x++) { this->invaders[x]->setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 290)); changedInvaderX += 80; }
+	for (int x = (invaderCount / rowCount) * 2; x < (invaderCount / rowCount) * 3; x++)
+	{
+		invaders[x].setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 290));
+		changedInvaderX += 80;
+	}
 	changedInvaderX = initialInvaderX;
 
 	//Row 2
-	for (int x = (invaderCount / rowCount) * 3; x < (invaderCount / rowCount) * 4; x++) { this->invaders[x]->setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 360)); changedInvaderX += 80; }
+	for (int x = (invaderCount / rowCount) * 3; x < (invaderCount / rowCount) * 4; x++)
+	{
+		invaders[x].setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 360));
+		changedInvaderX += 80;
+	}
 	changedInvaderX = initialInvaderX;
 
 	//Row 1
-	for (int x = (invaderCount / rowCount) * 4; x < (invaderCount / rowCount) * 5; x++) { this->invaders[x]->setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 430)); changedInvaderX += 80; }
+	for (int x = (invaderCount / rowCount) * 4; x < (invaderCount / rowCount) * 5; x++)
+	{
+		invaders[x].setInvaderPos(sf::Vector2<float>(SCREEN_WIDTH * 0 + changedInvaderX, 430));
+		changedInvaderX += 80;
+	}
 	changedInvaderX = initialInvaderX;
 	
 
 	//Shield information
-	for (int x = 0; x < shieldCount; x++) { shieldVector.push_back(&shield[x]); }
-	shield[0].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT - 150));
-	shield[1].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 - 500, SCREEN_HEIGHT - 150));
-	shield[2].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 + 150, SCREEN_HEIGHT - 150));
-	shield[3].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 + 500, SCREEN_HEIGHT - 150));
+	shields[0].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT - 150));
+	shields[1].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 - 500, SCREEN_HEIGHT - 150));
+	shields[2].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 + 150, SCREEN_HEIGHT - 150));
+	shields[3].setShieldPos(sf::Vector2<float>(SCREEN_WIDTH / 2 + 500, SCREEN_HEIGHT - 150));
 
 
 
 	//UFO information
-	ufoVector.push_back(&ufo);
 	ufo.setUFOPos(sf::Vector2<float>(SCREEN_WIDTH + 40, SCREEN_HEIGHT * 0 + 100));
 
 
@@ -92,18 +126,13 @@ PlayingState::PlayingState(StateMachine& machine, sf::RenderWindow& window, bool
 	//3 = Ufo Sound Effect
 	//4 = Backround Music
 
-	for (int x = 0; x < soundCount; x++) { soundVector.push_back(&playSound[x]); }
 	playSound[4].setMusic(backgroundSE, 30, true);
 }
 
 PlayingState::~PlayingState() {
-	delete this->player;
-	delete this->verisonText;
-	delete this->scoreText;
 	delete this->iBullet;
 
 	for (int x = 0; x < soundCount; x++)		   { playSound[x].stopSound(); playSound[x].stopMusic(); }
-	for (int x = 0; x < invaderVector.size(); x++) { delete this->invaders[x]; }
 }
 
 void PlayingState::updateKeyboardInputs(sf::Keyboard::Key key, bool isPressed) {
@@ -131,24 +160,24 @@ void PlayingState::updateEvents() {
 
 void PlayingState::update() {
 	fpsCounter.updateCounter();
-	scoreText->updateOText("SCORE<1>\n\t\t", playerScore);
+	scoreText.updateOText("SCORE<1>\n\t\t", playerScore);
 
 
 	/*------------------------------------------------------------------------------------------------------------------*/
 	//Updating
-	this->player->updateBorderBounds();
-	this->player->updatePlayer();
-	this->player->updateLives(playerLives);
-	pBullet.updateBullet(isPlayerShooting, PLAYER_BULLET_SPEED, this->player->getX(), this->player->getY());
+	players[0].updateBorderBounds();
+	players[0].updatePlayer();
+	players[0].updateLives(playerLives);
+	pBullet.updateBullet(isPlayerShooting, PLAYER_BULLET_SPEED, players[0].getX(), players[0].getY());
 
 	/*-------------------------------------------------------------------------------------------------------------------*/
 	//Invader logic 
 	//Collision and Movements 
-	for (auto &invader : invaderVector) {
+	for (auto &invader : invaders) {
 		//Movements
 		sf::Vector2<float> invaderMovement(0.f, 0.f);
-		if (invader->getX() <= SCREEN_WIDTH * 0 + 40) { isInvaderLeft = false; isInvaderDown = true; }
-		if (invader->getX() >= SCREEN_WIDTH)		  { isInvaderLeft = true; isInvaderDown = true; }
+		if (invader.getX() <= SCREEN_WIDTH * 0 + 40) { isInvaderLeft = false; isInvaderDown = true; }
+		if (invader.getX() >= SCREEN_WIDTH)		  { isInvaderLeft = true; isInvaderDown = true; }
 
 		if (enemyKilled < invaderCount - 1) {
 			if (isInvaderLeft == false) { invaderMovement.x += INVADER_SPEED; }
@@ -171,21 +200,21 @@ void PlayingState::update() {
 			}
 		}
 
-		if (invader->isInvaderDead() == false) {
-			invader->moveTo(invaderMovement);
-			invader->update();
+		if (invader.isInvaderDead() == false) {
+			invader.moveTo(invaderMovement);
+			invader.update();
 		}
 		//Player collision
-		if (this->player->collisionWithInvaders(invader)) { playerLives = 0; }
+		if (players[0].collisionWithInvaders(&invader)) { playerLives = 0; }
 
 		
 		//Bullet collision
-		if (pBullet.collisionWithInvaders(invader)) {
-			invader->setInvaderPos(sf::Vector2<float>(invader->getX(), invader->getY() - INVADER_ORIGIN));
+		if (pBullet.collisionWithInvaders(&invader)) {
+			invader.setInvaderPos(sf::Vector2<float>(invader.getX(), invader.getY() - INVADER_ORIGIN));
 			pBullet.setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN));
 			playSound[1].setSound(invaderKilledSE, 25, false);
 			enemyKilled++;
-			playerScore += invader->returnPointType();;
+			playerScore += invader.returnPointType();
 		}
 	}
 
@@ -198,24 +227,24 @@ void PlayingState::update() {
 
 	//Determining which invader is shooting (random)
 	if (invaderShooter <= invaderCount) {
-		if (this->invaders[invaderShooter]->isInvaderDead()  == false) {
+		if (invaders[invaderShooter].isInvaderDead()  == false) {
 			if (this->iBullet->getX() == BULLET_ORIGIN) { 
-				this->iBullet->setBulletPos(sf::Vector2<float>(this->invaders[invaderShooter]->getX(),  this->invaders[invaderShooter]->getY()));
+				this->iBullet->setBulletPos(sf::Vector2<float>(invaders[invaderShooter].getX(), invaders[invaderShooter].getY()));
 			}
 		} 
 
 		else { 
 			if (invaderShooter == invaderCount) { invaderShooter += 1; }
-			else { invaderShooter == 1; }
+			else { invaderShooter = 1; }
 		}
 	}
 
 	this->iBullet->moveTo(iBulletMovement);
 
-	for (auto &player : playerVector) {
-		if (this->iBullet->collisionWithPlayer(player)) {
+	for (auto &player : players) {
+		if (this->iBullet->collisionWithPlayer(&player)) {
 			this->iBullet->setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN));
-			player->setPlayerPos(sf::Vector2<float>(SCREEN_WIDTH / 10, GROUND_HEIGHT));
+			player.setPlayerPos(sf::Vector2<float>(SCREEN_WIDTH / 10, GROUND_HEIGHT));
 			playSound[2].setSound(explosionSE, 25, false);
 			playerLives--;
 		}
@@ -223,19 +252,19 @@ void PlayingState::update() {
 
 	/*-------------------------------------------------------------------------------------------------------------------*/
 	//Shield logic
-	for (auto &shield : shieldVector) {
+	for (auto &shield : shields) {
 		//Collision with player bullets
-		if (pBullet.collisionWithShield(shield) || this->iBullet->collisionWithShield(shield)) {
-			shield->shieldProtection(1);
+		if (pBullet.collisionWithShield(&shield) || this->iBullet->collisionWithShield(&shield)) {
+			shield.shieldProtection(1);
 
 			//Collision with player bullets
-			if (pBullet.collisionWithShield(shield)) { pBullet.setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN)); }
+			if (pBullet.collisionWithShield(&shield)) { pBullet.setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN)); }
 
 			//Collision with invader bullets
-			else { this->iBullet->setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN)); }
+			else { iBullet->setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN)); }
 
 			//Checking for shield damage
-			if (shield->shieldProtectionNum() <= 0) { shield->setShieldPos(sf::Vector2<float>(SHIELD_ORIGIN, SHIELD_ORIGIN)); }
+			if (shield.shieldProtectionNum() <= 0) { shield.setShieldPos(sf::Vector2<float>(SHIELD_ORIGIN, SHIELD_ORIGIN)); }
 		}
 	}
 
@@ -262,22 +291,20 @@ void PlayingState::update() {
 	ufo.moveTo(ufoMovement);
 
 	//UFO collision
-	for (auto &ufo : ufoVector) {
-		if (pBullet.collisionWithUFO(ufo)) {
-			ufo->setUFOPos(sf::Vector2<float>(SCREEN_WIDTH + 40, SCREEN_HEIGHT * 0 + 100));
-			playSound[1].setSound(invaderKilledSE, 25, false);
-			ufoClock.restart().asSeconds();
-			pBullet.setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN));
-			
-			//Determining the amount of points given to player after shooting UFO
-			randomUFOChoice = randomPoints.getInt(1, 3);
-			switch (randomUFOChoice) {
-				case 1: ufoPoints = 050; break;
-				case 2: ufoPoints = 100; break;
-				case 3: ufoPoints = 150; break;
-			}
-			playerScore += ufoPoints;
+	if (pBullet.collisionWithUFO(&ufo)) {
+		ufo.setUFOPos(sf::Vector2<float>(SCREEN_WIDTH + 40, SCREEN_HEIGHT * 0 + 100));
+		playSound[1].setSound(invaderKilledSE, 25, false);
+		ufoClock.restart().asSeconds();
+		pBullet.setBulletPos(sf::Vector2<float>(BULLET_ORIGIN, BULLET_ORIGIN));
+		
+		//Determining the amount of points given to player after shooting UFO
+		randomUFOChoice = randomPoints.getInt(1, 3);
+		switch (randomUFOChoice) {
+			case 1: ufoPoints = 050; break;
+			case 2: ufoPoints = 100; break;
+			case 3: ufoPoints = 150; break;
 		}
+		playerScore += ufoPoints;
 	}
 
 
@@ -307,18 +334,18 @@ void PlayingState::render() {
 
 	//Render items
 	fpsCounter.renderTo(window);
-	
-	this->verisonText->renderTo(window);
-	this->scoreText->renderTo(window);
-	
-	this->player->renderTo(window);
-	this->iBullet->renderTo(window);
+
+	versionText.renderTo(window);
+	scoreText.renderTo(window);
+
+	players[0].renderTo(window);
+	iBullet->renderTo(window);
 
 	pBullet.renderTo(window);
 	ufo.renderTo(window);
 
-	for (auto &invader : invaderVector) { invader->renderTo(window); }
-	for (auto &shield : shieldVector)	{ shield->renderTo(window); }
+	for (auto &invader : invaders) { invader.renderTo(window); }
+	for (auto &shield : shields) { shield.renderTo(window); }
 
 
 	window.display();

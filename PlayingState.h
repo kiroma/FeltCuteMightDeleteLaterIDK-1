@@ -28,6 +28,7 @@ class StateMachine;
 
 #include <iostream>
 #include <fstream>
+#include <array>
 
 class PlayingState : public State {
 	public:
@@ -66,25 +67,20 @@ class PlayingState : public State {
 		bool isInvaderDown    = false;
 		
 		//Vectors
-		std::vector<PlaySound*> soundVector;
-		std::vector<Player*> playerVector;
-		std::vector<Invaders*> invaderVector;
-		std::vector<Shield*> shieldVector;
-		std::vector<UFO*> ufoVector;
+		std::vector<Invaders> invaders;
+		std::vector<Shield> shields {shieldCount, Shield()};
+		UFO ufo;
 
 
 		//Class objects
+		std::array<PlaySound, 5> playSound;
 		Random<> randomInvader, randomPoints;
 		FPSCounter fpsCounter;
-		Text* verisonText;
-		PlaySound playSound[soundCount];
-		OStringText* scoreText;
-		Player* player;
-		Invaders* invaders[invaderCount];
+		Text versionText;
+		OStringText scoreText;
+		std::vector<Player> players;
 		PlayerBullet pBullet;
 		InvaderBullet* iBullet;
-		Shield shield[shieldCount];
-		UFO ufo;
 
 
 
